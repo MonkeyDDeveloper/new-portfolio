@@ -1,5 +1,5 @@
 """
-Esquemas Pydantic para validación de datos
+Pydantic schemas for data validation
 """
 
 from pydantic import BaseModel, Field
@@ -8,10 +8,6 @@ from typing import Optional, List
 
 
 # ============== Auth Schemas ==============
-
-class TokenRequest(BaseModel):
-    client_id: str = Field(..., description="ID del cliente")
-    client_secret: str = Field(..., description="Secreto del cliente")
 
 
 class Token(BaseModel):

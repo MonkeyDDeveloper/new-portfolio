@@ -1,128 +1,128 @@
-# API de Proyectos y Blogs
+# Projects and Blogs API
 
-API REST con FastAPI que incluye autenticación OAuth2 (client_credentials) y whitelist de IPs.
+REST API with FastAPI that includes OAuth2 authentication (client_credentials) and IP whitelist.
 
-## Características
+## Features
 
-- **Autenticación OAuth2** con `client_id` y `client_secret`
-- **Whitelist de IPs**: IPs específicas pueden acceder sin autenticación
-- **CRUD completo** para Proyectos y Blogs
-- **Búsqueda y filtros** avanzados
-- **Documentación automática** con Swagger/OpenAPI
-- **Listo para desplegar en Seenode**
+- **OAuth2 Authentication** with `client_id` and `client_secret`
+- **IP Whitelist**: Specific IPs can access without authentication
+- **Full CRUD** for Projects and Blogs
+- **Advanced search and filters**
+- **Automatic documentation** with Swagger/OpenAPI
+- **Ready to deploy on Seenode**
 
-## Estructura del Proyecto
+## Project Structure
 
 ```
 api_project/
-├── main.py              # Punto de entrada
-├── config.py            # Configuración
-├── database.py          # Modelos SQLAlchemy
-├── schemas.py           # Esquemas Pydantic
-├── auth.py              # Sistema de autenticación
+├── main.py              # Entry point
+├── config.py            # Configuration
+├── database.py          # SQLAlchemy models
+├── schemas.py           # Pydantic schemas
+├── auth.py              # Authentication system
 ├── routers/
 │   ├── __init__.py
-│   ├── auth.py          # Endpoints de auth
-│   ├── projects.py      # Endpoints de proyectos
-│   └── blogs.py         # Endpoints de blogs
+│   ├── auth.py          # Auth endpoints
+│   ├── projects.py      # Projects endpoints
+│   └── blogs.py         # Blogs endpoints
 ├── requirements.txt
 ├── .env.example
 ├── .gitignore
 └── README.md
 ```
 
-## Instalación Local
+## Local Installation
 
 ```bash
-# Crear entorno virtual
+# Create virtual environment
 python -m venv venv
 source venv/bin/activate  # Linux/Mac
-# o
+# or
 venv\Scripts\activate  # Windows
 
-# Instalar dependencias
+# Install dependencies
 pip install -r requirements.txt
 
-# Copiar y configurar variables de entorno
+# Copy and configure environment variables
 cp .env.example .env
-# Editar .env con tus configuraciones
+# Edit .env with your configurations
 
-# Ejecutar
+# Run
 uvicorn main:app --reload
 ```
 
-## Despliegue en Seenode
+## Deployment on Seenode
 
-### 1. Preparar el repositorio
+### 1. Prepare the repository
 
 ```bash
-# Inicializar git (si no lo has hecho)
+# Initialize git (if you haven't already)
 git init
 git add .
 git commit -m "Initial commit"
 
-# Subir a GitHub/GitLab
-git remote add origin <tu-repositorio>
+# Push to GitHub/GitLab
+git remote add origin <your-repository>
 git push -u origin main
 ```
 
-### 2. Configurar en Seenode
+### 2. Configure on Seenode
 
-1. Ve al [Dashboard de Seenode](https://seenode.com)
-2. Crea un nuevo **Web Service**
-3. Conecta tu repositorio de GitHub/GitLab
-4. Configura:
-   - **Port**: `8000` (o el que configures en .env)
+1. Go to [Seenode Dashboard](https://seenode.com)
+2. Create a new **Web Service**
+3. Connect your GitHub/GitLab repository
+4. Configure:
+   - **Port**: `8000` (or the one you configure in .env)
    - **Start Command**: `uvicorn main:app --host 0.0.0.0 --port 8000`
 
-### 3. Variables de Entorno en Seenode
+### 3. Environment Variables on Seenode
 
-En el dashboard de Seenode, agrega estas variables de entorno:
+In the Seenode dashboard, add these environment variables:
 
-| Variable | Valor | Descripción |
+| Variable | Value | Description |
 |----------|-------|-------------|
-| `SECRET_KEY` | `<genera-una-clave-segura>` | Clave para JWT |
-| `DATABASE_URL` | `postgresql://...` | URL de tu base de datos |
-| `WHITELISTED_IPS` | `<ips-separadas-por-coma>` | IPs sin autenticación |
-| `ACCESS_TOKEN_EXPIRE_MINUTES` | `30` | Expiración del token |
-| `ENVIRONMENT` | `production` | Entorno |
+| `SECRET_KEY` | `<generate-a-secure-key>` | Key for JWT |
+| `DATABASE_URL` | `postgresql://...` | Your database URL |
+| `WHITELISTED_IPS` | `<comma-separated-ips>` | IPs without authentication |
+| `ACCESS_TOKEN_EXPIRE_MINUTES` | `30` | Token expiration |
+| `ENVIRONMENT` | `production` | Environment |
 
-> 💡 **Tip**: Genera una clave secreta con: `openssl rand -hex 32`
+> Tip: Generate a secret key with: `openssl rand -hex 32`
 
-### 4. Base de Datos
+### 4. Database
 
-Para producción, se recomienda usar PostgreSQL. Puedes crear una base de datos en Seenode o usar un servicio externo.
+For production, it's recommended to use PostgreSQL. You can create a database on Seenode or use an external service.
 
 ```
-DATABASE_URL=postgresql://usuario:password@host:5432/nombre_db
+DATABASE_URL=postgresql://username:password@host:5432/database_name
 ```
 
-## Uso de la API
+## API Usage
 
-### 1. Crear el primer cliente (solo una vez)
+### 1. Create the first client (only once)
 
 ```bash
-curl -X POST https://tu-app.seenode.com/auth/clients/seed \
+curl -X POST https://your-app.seenode.com/auth/clients/seed \
   -H "Content-Type: application/json" \
   -d '{
-    "client_id": "mi-app",
-    "client_secret": "mi-secreto-seguro-minimo-10-caracteres",
-    "name": "Mi Aplicación"
+    "client_id": "my-app",
+    "client_secret": "my-secure-secret-minimum-10-characters",
+    "name": "My Application"
   }'
 ```
 
-### 2. Obtener token de acceso
+### 2. Get access token
 
 ```bash
-curl -X POST https://tu-app.seenode.com/auth/token \
+curl -X POST https://your-app.seenode.com/auth/token \
   -H "Content-Type: application/json" \
   -d '{
-    "client_id": "mi-app",
-    "client_secret": "mi-secreto-seguro-minimo-10-caracteres"
+    "client_id": "my-app",
+    "client_secret": "my-secure-secret-minimum-10-characters"
   }'
 ```
 
-Respuesta:
+Response:
 ```json
 {
   "access_token": "eyJhbGciOiJIUzI1...",
@@ -131,84 +131,84 @@ Respuesta:
 }
 ```
 
-### 3. Usar la API con token
+### 3. Use the API with token
 
 ```bash
-# Crear proyecto
-curl -X POST https://tu-app.seenode.com/projects \
+# Create project
+curl -X POST https://your-app.seenode.com/projects \
   -H "Authorization: Bearer eyJhbGciOiJIUzI1..." \
   -H "Content-Type: application/json" \
   -d '{
-    "title": "Mi Proyecto",
-    "description": "Descripción del proyecto",
+    "title": "My Project",
+    "description": "Project description",
     "status": "active",
     "tags": "python,fastapi"
   }'
 
-# Listar proyectos
-curl https://tu-app.seenode.com/projects \
+# List projects
+curl https://your-app.seenode.com/projects \
   -H "Authorization: Bearer eyJhbGciOiJIUzI1..."
 
-# Buscar proyectos
-curl "https://tu-app.seenode.com/projects/search?title=Mi&status=active" \
+# Search projects
+curl "https://your-app.seenode.com/projects/search?title=My&status=active" \
   -H "Authorization: Bearer eyJhbGciOiJIUzI1..."
 ```
 
-### 4. Acceso desde IP en whitelist (sin token)
+### 4. Access from whitelisted IP (without token)
 
-Si tu IP está en `WHITELISTED_IPS`, puedes acceder directamente:
+If your IP is in `WHITELISTED_IPS`, you can access directly:
 
 ```bash
-curl https://tu-app.seenode.com/projects
+curl https://your-app.seenode.com/projects
 ```
 
 ## Endpoints
 
-### Autenticación (`/auth`)
+### Authentication (`/auth`)
 
-| Método | Endpoint | Descripción |
+| Method | Endpoint | Description |
 |--------|----------|-------------|
-| POST | `/auth/token` | Obtener token de acceso |
-| POST | `/auth/clients/seed` | Crear primer cliente (sin auth) |
-| POST | `/auth/clients` | Crear cliente (requiere token) |
-| GET | `/auth/me` | Info del acceso actual |
-| DELETE | `/auth/clients/{id}` | Desactivar cliente |
+| POST | `/auth/token` | Get access token |
+| POST | `/auth/clients/seed` | Create first client (no auth) |
+| POST | `/auth/clients` | Create client (requires token) |
+| GET | `/auth/me` | Current access info |
+| DELETE | `/auth/clients/{id}` | Deactivate client |
 
-### Proyectos (`/projects`)
+### Projects (`/projects`)
 
-| Método | Endpoint | Descripción |
+| Method | Endpoint | Description |
 |--------|----------|-------------|
-| GET | `/projects` | Listar proyectos |
-| GET | `/projects/search` | Buscar con filtros |
-| GET | `/projects/{id}` | Obtener proyecto |
-| POST | `/projects` | Crear proyecto |
-| PUT | `/projects/{id}` | Actualizar proyecto |
-| DELETE | `/projects/{id}` | Eliminar proyecto |
+| GET | `/projects` | List projects |
+| GET | `/projects/search` | Search with filters |
+| GET | `/projects/{id}` | Get project |
+| POST | `/projects` | Create project |
+| PUT | `/projects/{id}` | Update project |
+| DELETE | `/projects/{id}` | Delete project |
 
 ### Blogs (`/blogs`)
 
-| Método | Endpoint | Descripción |
+| Method | Endpoint | Description |
 |--------|----------|-------------|
-| GET | `/blogs` | Listar blogs |
-| GET | `/blogs/search` | Buscar con filtros |
-| GET | `/blogs/{id}` | Obtener blog |
-| POST | `/blogs` | Crear blog |
-| PUT | `/blogs/{id}` | Actualizar blog |
-| DELETE | `/blogs/{id}` | Eliminar blog |
-| PATCH | `/blogs/{id}/publish` | Publicar/Despublicar |
+| GET | `/blogs` | List blogs |
+| GET | `/blogs/search` | Search with filters |
+| GET | `/blogs/{id}` | Get blog |
+| POST | `/blogs` | Create blog |
+| PUT | `/blogs/{id}` | Update blog |
+| DELETE | `/blogs/{id}` | Delete blog |
+| PATCH | `/blogs/{id}/publish` | Publish/Unpublish |
 
-## Documentación Interactiva
+## Interactive Documentation
 
-- **Swagger UI**: `https://tu-app.seenode.com/docs`
-- **ReDoc**: `https://tu-app.seenode.com/redoc`
+- **Swagger UI**: `https://your-app.seenode.com/docs`
+- **ReDoc**: `https://your-app.seenode.com/redoc`
 
-## Seguridad
+## Security
 
-- Los `client_secret` se almacenan hasheados con bcrypt
-- Los tokens JWT tienen expiración configurable
-- La whitelist de IPs permite acceso controlado sin token
-- Endpoints sensibles (crear/eliminar clientes) siempre requieren token
+- `client_secret` values are stored hashed with bcrypt
+- JWT tokens have configurable expiration
+- IP whitelist allows controlled access without token
+- Sensitive endpoints (create/delete clients) always require token
 
-## Licencia
+## License
 
 MIT
