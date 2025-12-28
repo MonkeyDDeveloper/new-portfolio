@@ -6,6 +6,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import HTTPBearer
 from starlette.responses import JSONResponse
 from starlette.status import HTTP_401_UNAUTHORIZED
+from decouple import config
 
 from database.utils.utils import verify_token
 from routers import (
@@ -59,6 +60,9 @@ app.include_router(auth.router, prefix="/auth", tags=["Authentication"])
 @app.middleware("http")
 async def verify_token_middleware(request: Request, call_next):
     if any(request.url.path.startswith(path) for path in PUBLIC_PATHS):
+        return await call_next(request)
+    white_list_ips = config("WHITE_LIST_IPS").split(",")
+    if request.client.host in white_list_ips:
         return await call_next(request)
     headers = request.headers
     bearer_token = headers.get("authorization")
