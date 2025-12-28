@@ -1,9 +1,10 @@
 from pydantic import BaseModel
 from abc import ABC, abstractmethod
-from typing import Any
+from typing import Any, Optional, Dict, List
 import pymysql
 import pymysql.cursors
 from database.entities.api_db_entities import FindUserResponse, ApiUser, UserInDB, AuthResponse
+from database.entities.base_entity import BaseEntity
 from decouple import config
 from database.utils.password import verify_password
 from database.utils.utils import generate_token_for_api_user
@@ -27,6 +28,31 @@ class Connection(ABC, BaseModel):
 
     @abstractmethod
     def find_user(self, user: ApiUser) -> FindUserResponse:
+        pass
+
+    @abstractmethod
+    def create_entity(self, entity: BaseEntity) -> dict:
+        """Create a new entity in the database"""
+        pass
+
+    @abstractmethod
+    def find_entities(self, entity_class: type[BaseEntity], filters: Optional[Dict[str, Any]] = None, skip: int = 0, limit: int = 10) -> dict:
+        """Find entities with optional filters and pagination"""
+        pass
+
+    @abstractmethod
+    def find_entity_by_id(self, entity_class: type[BaseEntity], entity_id: int) -> dict:
+        """Find a single entity by ID"""
+        pass
+
+    @abstractmethod
+    def update_entity(self, entity: BaseEntity, entity_id: int) -> dict:
+        """Update an existing entity"""
+        pass
+
+    @abstractmethod
+    def delete_entity(self, entity_class: type[BaseEntity], entity_id: int) -> dict:
+        """Delete an entity by ID"""
         pass
 
     def __enter__(self):
@@ -63,12 +89,81 @@ class MySQLConnection(Connection):
                 if result is None:
                     return FindUserResponse(success=True, user=None, message="No user found")
                 user_in_db = UserInDB(
-                    username=result.get('USERNAME'),
-                    password=result.get('PASSWORD')
+                    username=result.get('username'),
+                    password=result.get('password')
                 )
                 return FindUserResponse(success=True, user=user_in_db, message="User found")
         except Exception as e:
             return FindUserResponse(success=False, user=None, message=f"There was an error querying the database, looking for user {api_user.username}: {str(e)}")
+
+    # ============== Generic Entity CRUD Methods ==============
+
+    def create_entity(self, entity: BaseEntity) -> dict:
+        """Create a new entity using its get_insert_query method"""
+        try:
+            with self._connection.cursor() as cursor:
+                query, params = entity.get_insert_query()
+                cursor.execute(query, params)
+                self._connection.commit()
+                return {"success": True, "id": cursor.lastrowid, "message": "Entity created successfully"}
+        except Exception as e:
+            self._connection.rollback()
+            return {"success": False, "message": f"Error creating entity: {str(e)}"}
+
+    def find_entities(self, entity_class: type[BaseEntity], filters: Optional[Dict[str, Any]] = None, skip: int = 0, limit: int = 10) -> dict:
+        """Find entities using the entity class's get_select_query method"""
+        try:
+            with self._connection.cursor() as cursor:
+                # Get query from entity class
+                query, params = entity_class.get_select_query(filters=filters, skip=skip, limit=limit)
+                cursor.execute(query, params)
+                results = cursor.fetchall()
+
+                # Get count
+                count_query, count_params = entity_class.get_count_query(filters=filters)
+                cursor.execute(count_query, count_params)
+                total = cursor.fetchone()['total']
+
+                return {"success": True, "data": results, "total": total}
+        except Exception as e:
+            return {"success": False, "message": f"Error fetching entities: {str(e)}"}
+
+    def find_entity_by_id(self, entity_class: type[BaseEntity], entity_id: int) -> dict:
+        """Find a single entity by ID using the entity class's get_select_by_id_query method"""
+        try:
+            with self._connection.cursor() as cursor:
+                query, params = entity_class.get_select_by_id_query(entity_id)
+                cursor.execute(query, params)
+                result = cursor.fetchone()
+                return {"success": True, "data": result}
+        except Exception as e:
+            return {"success": False, "message": f"Error fetching entity: {str(e)}"}
+
+    def update_entity(self, entity: BaseEntity, entity_id: int) -> dict:
+        """Update an entity using its get_update_query method"""
+        try:
+            with self._connection.cursor() as cursor:
+                query, params = entity.get_update_query(entity_id)
+                cursor.execute(query, params)
+                self._connection.commit()
+                return {"success": True, "message": "Entity updated successfully"}
+        except ValueError as ve:
+            return {"success": False, "message": str(ve)}
+        except Exception as e:
+            self._connection.rollback()
+            return {"success": False, "message": f"Error updating entity: {str(e)}"}
+
+    def delete_entity(self, entity_class: type[BaseEntity], entity_id: int) -> dict:
+        """Delete an entity using the entity class's get_delete_query method"""
+        try:
+            with self._connection.cursor() as cursor:
+                query, params = entity_class.get_delete_query(entity_id)
+                cursor.execute(query, params)
+                self._connection.commit()
+                return {"success": True, "message": "Entity deleted successfully"}
+        except Exception as e:
+            self._connection.rollback()
+            return {"success": False, "message": f"Error deleting entity: {str(e)}"}
 
 
 # Services
@@ -134,6 +229,33 @@ class MySQLService(DBService):
                 message="User authenticated successfully",
                 token=token
             )
+
+    # ============== Generic Entity CRUD Methods ==============
+
+    def create_entity(self, entity: BaseEntity) -> dict:
+        """Create a new entity"""
+        with self.create_connection(self.config) as connection:
+            return connection.create_entity(entity)
+
+    def find_entities(self, entity_class: type[BaseEntity], filters: Optional[Dict[str, Any]] = None, skip: int = 0, limit: int = 10) -> dict:
+        """Find entities with optional filters"""
+        with self.create_connection(self.config) as connection:
+            return connection.find_entities(entity_class, filters, skip, limit)
+
+    def find_entity_by_id(self, entity_class: type[BaseEntity], entity_id: int) -> dict:
+        """Find a single entity by ID"""
+        with self.create_connection(self.config) as connection:
+            return connection.find_entity_by_id(entity_class, entity_id)
+
+    def update_entity(self, entity: BaseEntity, entity_id: int) -> dict:
+        """Update an existing entity"""
+        with self.create_connection(self.config) as connection:
+            return connection.update_entity(entity, entity_id)
+
+    def delete_entity(self, entity_class: type[BaseEntity], entity_id: int) -> dict:
+        """Delete an entity by ID"""
+        with self.create_connection(self.config) as connection:
+            return connection.delete_entity(entity_class, entity_id)
 
     def __init__(self):
         self.load_config()

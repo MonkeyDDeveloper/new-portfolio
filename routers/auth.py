@@ -2,10 +2,8 @@
 Authentication router
 """
 
-from fastapi import APIRouter, Depends, HTTPException, status, Request
-from sqlalchemy.orm import Session
+from fastapi import APIRouter
 from database.entities.api_db_entities import AuthResponse, TokenRequest
-from schemas import Token, ClientCreate, ClientResponse, MessageResponse
 from auth import AuthController
 
 router = APIRouter()
