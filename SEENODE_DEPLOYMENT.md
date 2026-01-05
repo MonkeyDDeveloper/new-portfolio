@@ -28,15 +28,21 @@ SECRET_KEY=Juan123!
 ALGORITHM=HS256
 ```
 
-### 4. Whitelist de IPs
+### 4. Whitelist de IPs y Origins
 ```
 WHITELISTED_IPS=127.0.0.1
 ```
 
-**Nota:** Si necesitas agregar múltiples IPs a la whitelist, sepáralas con comas:
-```
-WHITELISTED_IPS=127.0.0.1,192.168.1.100,10.0.0.50
-```
+**Nota:**
+- **IPs:** Si necesitas agregar múltiples IPs, sepáralas con comas:
+  ```
+  WHITELISTED_IPS=127.0.0.1,192.168.1.100,10.0.0.50
+  ```
+- **Origins:** Para permitir acceso desde dominios específicos sin token (por ejemplo, tu frontend), agrégalos aquí:
+  ```
+  WHITELISTED_ORIGINS=https://tu-frontend.seenode.com,https://otro-dominio.com
+  ```
+- Si configuras `WHITELISTED_ORIGINS` con tu dominio de frontend, las peticiones desde ese dominio **NO necesitarán token de autenticación**
 
 ## Pasos para Configurar en Seenode
 

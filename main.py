@@ -73,12 +73,30 @@ async def verify_token_middleware(request: Request, call_next):
 
     if any(request.url.path.startswith(path) for path in PUBLIC_PATHS):
         return await call_next(request)
-    white_list_ips = config("WHITELISTED_IPS").split(",")
-    client_host = request.client.host
-    print(f"Client IP: {client_host}")
-    print(f"Whitelisted IPs: {white_list_ips}")
-    if client_host in white_list_ips:
+
+    # Check whitelist (IPs and Origins)
+    whitelisted_ips = config("WHITELISTED_IPS", default="").split(",")
+    whitelisted_origins = config("WHITELISTED_ORIGINS", default="").split(",")
+
+    # Remove empty strings from lists
+    whitelisted_ips = [ip.strip() for ip in whitelisted_ips if ip.strip()]
+    whitelisted_origins = [origin.strip() for origin in whitelisted_origins if origin.strip()]
+
+    # Check IP whitelist
+    client_ip = request.client.host
+    if client_ip in whitelisted_ips:
         return await call_next(request)
+
+    # Check Origin whitelist
+    origin = request.headers.get("origin", "")
+    referer = request.headers.get("referer", "")
+
+    # Check if origin matches any whitelisted origin
+    for whitelisted_origin in whitelisted_origins:
+        if origin.startswith(whitelisted_origin) or referer.startswith(whitelisted_origin):
+            return await call_next(request)
+
+    # Check token authentication
     headers = request.headers
     bearer_token = headers.get("authorization")
     valid_token = verify_token(token=bearer_token)
