@@ -3,10 +3,11 @@ FastAPI API with OAuth2 authentication and IP whitelist
 """
 from fastapi import FastAPI, Request, Depends
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.security import HTTPBearer
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from starlette.responses import JSONResponse
 from starlette.status import HTTP_401_UNAUTHORIZED
 from decouple import config
+from typing import Optional
 
 from database.utils.utils import verify_token
 from routers import (
@@ -22,6 +23,13 @@ from routers import (
     technology_experiences
 )
 
+# Security scheme for Swagger UI
+security = HTTPBearer(auto_error=False)
+
+# Dependency for OpenAPI documentation (actual validation done by middleware)
+async def swagger_security(credentials: Optional[HTTPAuthorizationCredentials] = Depends(security)):
+    """This dependency only exists for Swagger UI documentation - actual auth is handled by middleware"""
+    return credentials
 
 app = FastAPI(
     title="Portfolio API",
@@ -61,7 +69,7 @@ app.include_router(auth.router, prefix="/auth", tags=["Authentication"])
 async def verify_token_middleware(request: Request, call_next):
     if any(request.url.path.startswith(path) for path in PUBLIC_PATHS):
         return await call_next(request)
-    white_list_ips = config("WHITE_LIST_IPS").split(",")
+    white_list_ips = config("WHITELISTED_IPS").split(",")
     if request.client.host in white_list_ips:
         return await call_next(request)
     headers = request.headers
@@ -71,14 +79,14 @@ async def verify_token_middleware(request: Request, call_next):
         return await call_next(request)
     return JSONResponse({"detail": "Invalid token"}, status_code=HTTP_401_UNAUTHORIZED)
 # Portfolio Entities
-app.include_router(companies.router, prefix="/companies", tags=["Companies"], dependencies=[Depends(HTTPBearer())])
-app.include_router(technologies.router, prefix="/technologies", tags=["Technologies"], dependencies=[Depends(HTTPBearer())])
-app.include_router(experiences.router, prefix="/experiences", tags=["Professional Experiences"], dependencies=[Depends(HTTPBearer())])
-app.include_router(projects.router, prefix="/projects", tags=["Projects"], dependencies=[Depends(HTTPBearer())])
-app.include_router(project_tasks.router, prefix="/project-tasks", tags=["Project Tasks"], dependencies=[Depends(HTTPBearer())])
-app.include_router(responsibilities.router, prefix="/responsibilities", tags=["Responsibilities"], dependencies=[Depends(HTTPBearer())])
+app.include_router(companies.router, prefix="/companies", tags=["Companies"], dependencies=[Depends(swagger_security)])
+app.include_router(technologies.router, prefix="/technologies", tags=["Technologies"], dependencies=[Depends(swagger_security)])
+app.include_router(experiences.router, prefix="/experiences", tags=["Professional Experiences"], dependencies=[Depends(swagger_security)])
+app.include_router(projects.router, prefix="/projects", tags=["Projects"], dependencies=[Depends(swagger_security)])
+app.include_router(project_tasks.router, prefix="/project-tasks", tags=["Project Tasks"], dependencies=[Depends(swagger_security)])
+app.include_router(responsibilities.router, prefix="/responsibilities", tags=["Responsibilities"], dependencies=[Depends(swagger_security)])
 
 # Many-to-Many Relations
-app.include_router(technology_projects.router, prefix="/technology-projects", tags=["Technology-Project Relations"], dependencies=[Depends(HTTPBearer())])
-app.include_router(company_experiences.router, prefix="/company-experiences", tags=["Company-Experience Relations"], dependencies=[Depends(HTTPBearer())])
-app.include_router(technology_experiences.router, prefix="/technology-experiences", tags=["Technology-Experience Relations"], dependencies=[Depends(HTTPBearer())])
+app.include_router(technology_projects.router, prefix="/technology-projects", tags=["Technology-Project Relations"], dependencies=[Depends(swagger_security)])
+app.include_router(company_experiences.router, prefix="/company-experiences", tags=["Company-Experience Relations"], dependencies=[Depends(swagger_security)])
+app.include_router(technology_experiences.router, prefix="/technology-experiences", tags=["Technology-Experience Relations"], dependencies=[Depends(swagger_security)])

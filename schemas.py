@@ -230,6 +230,13 @@ class ProfessionalExperienceCreate(MySQLEntity):
         params = (self.title, self.description, self.start_date, self.end_date, self.is_current, entity_id)
         return (query, params)
 
+    @classmethod
+    def get_select_query(cls, filters: Optional[Dict[str, Any]] = None, skip: int = 0, limit: int = 10) -> Tuple[
+        str, tuple]:
+        query, params = super().get_select_query(filters, skip, limit)
+        query = query.replace("ORDER BY id DESC", "ORDER BY start_date DESC")
+        return (query, params)
+
 
 class ProfessionalExperienceUpdate(MySQLEntity):
     title: Optional[str] = Field(None, min_length=1, max_length=200)
@@ -326,6 +333,12 @@ class ProjectCreate(MySQLEntity):
     def get_update_query(self, entity_id: int) -> Tuple[str, tuple]:
         query = "UPDATE projects SET name = %s, description = %s, github_uri = %s WHERE id = %s"
         params = (self.name, self.description, self.github_uri, entity_id)
+        return (query, params)
+
+    @classmethod
+    def get_select_query(cls, filters: Optional[Dict[str, Any]] = None, skip: int = 0, limit: int = 10) -> Tuple[str, tuple]:
+        query, params = super().get_select_query(filters, skip, limit)
+        query = query.replace("ORDER BY id DESC", "ORDER BY created_at DESC")
         return (query, params)
 
 

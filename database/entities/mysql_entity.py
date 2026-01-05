@@ -49,6 +49,7 @@ class MySQLEntity(BaseEntity):
         query = f"SELECT * FROM {table_name}"
         params = []
 
+        # Add WHERE clause if filters exist
         if filters:
             where_clauses = []
             for key, value in filters.items():
@@ -63,6 +64,10 @@ class MySQLEntity(BaseEntity):
             if where_clauses:
                 query += " WHERE " + " AND ".join(where_clauses)
 
+        # Add ORDER BY (default by id DESC - most recent first)
+        query += " ORDER BY id DESC"
+
+        # Add pagination
         query += " LIMIT %s OFFSET %s"
         params.extend([limit, skip])
 
