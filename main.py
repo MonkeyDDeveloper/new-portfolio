@@ -74,7 +74,10 @@ async def verify_token_middleware(request: Request, call_next):
     if any(request.url.path.startswith(path) for path in PUBLIC_PATHS):
         return await call_next(request)
     white_list_ips = config("WHITELISTED_IPS").split(",")
-    if request.client.host in white_list_ips:
+    client_host = request.client.host
+    print(f"Client IP: {client_host}")
+    print(f"Whitelisted IPs: {white_list_ips}")
+    if client_host in white_list_ips:
         return await call_next(request)
     headers = request.headers
     bearer_token = headers.get("authorization")
