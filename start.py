@@ -96,13 +96,18 @@ def start_server():
         # In production, disable reload for better performance
         reload_enabled = environment != "production"
 
-        subprocess.run([
+        cmd = [
             "python", "-m", "uvicorn",
             "main:app",
             "--host", "0.0.0.0",
-            "--port", str(port),
-            "--reload" if reload_enabled else "--no-reload"
-        ], check=True)
+            "--port", str(port)
+        ]
+
+        # Only add --reload flag in development
+        if reload_enabled:
+            cmd.append("--reload")
+
+        subprocess.run(cmd, check=True)
     except subprocess.CalledProcessError:
         print("Error: Failed to start server")
         sys.exit(1)
