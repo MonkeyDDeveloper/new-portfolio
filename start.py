@@ -41,7 +41,14 @@ def check_env_file():
     env_file = Path(".env")
     env_example = Path(".env.example")
 
+    # Check if running in production (via environment variable)
+    environment = os.getenv("ENVIRONMENT", "development")
+
     if not env_file.exists():
+        if environment == "production":
+            print("Running in production mode - using system environment variables")
+            return
+
         if env_example.exists():
             print("Warning: .env file not found. Copying from .env.example...")
             import shutil
@@ -49,7 +56,7 @@ def check_env_file():
             print("Please edit .env file with your configuration before running again.")
             sys.exit(1)
         else:
-            print("Warning: No .env file found. Using default settings.")
+            print("Warning: No .env file found. Using environment variables.")
 
 
 def kill_port(port=8000):
@@ -70,30 +77,37 @@ def kill_port(port=8000):
 def start_server():
     """Start the FastAPI server"""
 
-    kill_port(port=8000)
+    # Get port from environment variable or use default
+    port = int(os.getenv("PORT", "8000"))
+    environment = os.getenv("ENVIRONMENT", "development")
+
+    kill_port(port=port)
 
     print()
     print("=" * 50)
     print("  Starting API server...")
     print("=" * 50)
-    print("API will be available at: http://localhost:8000")
-    print("API documentation at: http://localhost:8000/docs")
+    print(f"API will be available at: http://localhost:{port}")
+    print(f"API documentation at: http://localhost:{port}/docs")
     print("Press Ctrl+C to stop the server")
     print()
 
     try:
+        # In production, disable reload for better performance
+        reload_enabled = environment != "production"
+
         subprocess.run([
             "python", "-m", "uvicorn",
             "main:app",
             "--host", "0.0.0.0",
-            "--port", "8000",
-            "--reload"
+            "--port", str(port),
+            "--reload" if reload_enabled else "--no-reload"
         ], check=True)
     except subprocess.CalledProcessError:
         print("Error: Failed to start server")
         sys.exit(1)
     except KeyboardInterrupt:
-        print("\nServer stopped by entities")
+        print("\nServer stopped by user")
         sys.exit(0)
 
 def main():
