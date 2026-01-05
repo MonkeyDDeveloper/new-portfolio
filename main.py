@@ -67,6 +67,10 @@ app.add_middleware(
 app.include_router(auth.router, prefix="/auth", tags=["Authentication"])
 @app.middleware("http")
 async def verify_token_middleware(request: Request, call_next):
+    # Allow CORS preflight requests (OPTIONS) to pass through
+    if request.method == "OPTIONS":
+        return await call_next(request)
+
     if any(request.url.path.startswith(path) for path in PUBLIC_PATHS):
         return await call_next(request)
     white_list_ips = config("WHITELISTED_IPS").split(",")
