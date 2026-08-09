@@ -99,10 +99,9 @@ def init_db():
 
     try:
         with conn.cursor() as cursor:
-            cursor.execute("SHOW TABLES")
-            tables = cursor.fetchall()
-            if tables:
-                print(f"Database already has {len(tables)} tables, skipping initialization")
+            cursor.execute("SHOW TABLES LIKE 'projects'")
+            if cursor.fetchone():
+                print("Database schema already initialized, skipping")
                 return
 
         with open(schema_file, "r", encoding="utf-8") as f:
