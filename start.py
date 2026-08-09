@@ -107,12 +107,13 @@ def init_db():
         with open(schema_file, "r", encoding="utf-8") as f:
             sql_content = f.read()
 
+        import re
+        sql_content = re.sub(r'--.*$', '', sql_content, flags=re.MULTILINE)
+
         statements = [stmt.strip() for stmt in sql_content.split(";") if stmt.strip()]
 
         with conn.cursor() as cursor:
             for stmt in statements:
-                if stmt.startswith("--"):
-                    continue
                 cursor.execute(stmt)
         conn.commit()
         print(f"Database initialized with {len(statements)} SQL statements")
