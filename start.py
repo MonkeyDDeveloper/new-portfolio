@@ -74,6 +74,56 @@ def kill_port(port=8000):
                 os.kill(int(pid), signal.SIGKILL)
             print(f"Killed existing process on port {port}")
 
+def init_db():
+    """Initialize database schema if tables don't exist"""
+    import pymysql
+    from decouple import config
+    import os
+
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    schema_file = os.path.join(current_dir, "database", "schema.sql")
+
+    if not os.path.exists(schema_file):
+        print("Warning: schema.sql not found, skipping DB initialization")
+        return
+
+    print("Checking database schema...")
+
+    conn = pymysql.connect(
+        host=config("HOST"),
+        port=int(config("DB_PORT")),
+        user=config("USERNAME"),
+        password=config("PASSWORD"),
+        database=config("DATABASE"),
+    )
+
+    try:
+        with conn.cursor() as cursor:
+            cursor.execute("SHOW TABLES")
+            tables = cursor.fetchall()
+            if tables:
+                print(f"Database already has {len(tables)} tables, skipping initialization")
+                return
+
+        with open(schema_file, "r", encoding="utf-8") as f:
+            sql_content = f.read()
+
+        statements = [stmt.strip() for stmt in sql_content.split(";") if stmt.strip()]
+
+        with conn.cursor() as cursor:
+            for stmt in statements:
+                if stmt.startswith("--"):
+                    continue
+                cursor.execute(stmt)
+        conn.commit()
+        print(f"Database initialized with {len(statements)} SQL statements")
+    except Exception as e:
+        conn.rollback()
+        print(f"Warning: DB initialization failed: {e}")
+    finally:
+        conn.close()
+
+
 def start_server():
     """Start the FastAPI server"""
 
@@ -120,6 +170,7 @@ def main():
     print_header()
     check_python_version()
     check_env_file()
+    init_db()
     start_server()
 
 

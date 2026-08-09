@@ -55,47 +55,6 @@ async def root():
 async def health_check():
     return {"status": "healthy"}
 
-
-@app.post("/init-db", tags=["Admin"])
-async def init_db():
-    """Initialize database with schema (use only once!)"""
-    import os
-    import pymysql
-    from decouple import config
-
-    current_dir = os.path.dirname(os.path.abspath(__file__))
-    schema_file = os.path.join(current_dir, "database", "schema.sql")
-
-    if not os.path.exists(schema_file):
-        return {"status": "error", "message": "schema.sql not found"}
-
-    with open(schema_file, "r", encoding="utf-8") as f:
-        sql_content = f.read()
-
-    statements = [stmt.strip() for stmt in sql_content.split(";") if stmt.strip()]
-
-    conn = pymysql.connect(
-        host=config("HOST"),
-        port=int(config("DB_PORT")),
-        user=config("USERNAME"),
-        password=config("PASSWORD"),
-        database=config("DATABASE"),
-    )
-
-    try:
-        with conn.cursor() as cursor:
-            for stmt in statements:
-                if stmt.startswith("--"):
-                    continue
-                cursor.execute(stmt)
-        conn.commit()
-        return {"status": "success", "message": f"Executed {len(statements)} SQL statements"}
-    except Exception as e:
-        conn.rollback()
-        return {"status": "error", "message": str(e)}
-    finally:
-        conn.close()
-
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
