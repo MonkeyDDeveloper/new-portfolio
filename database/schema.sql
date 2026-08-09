@@ -168,14 +168,16 @@ INSERT INTO companies (id, name, logo_path) VALUES
 (1, 'MonkeyDDeveloper', '/experience/monkey_d_developer.png'),
 (2, 'Soluciones y Proyectos SA', '/experience/nomina360.png'),
 (3, 'Cacao Web Studio', '/experience/cacao_logo.jpg'),
-(4, 'Dacodes', '/experience/dacodes_logo.webp');
+(4, 'Dacodes', '/experience/dacodes_logo.webp'),
+(5, 'AltScore', '/experience/altscore.png');
 
 -- Insert professional experiences
 INSERT INTO professional_experiences (id, title, description, start_date, end_date, is_current) VALUES
 (1, 'FullStack Developer at MonkeyDDevelopment', 'We created a web application to streamline the student enrollment process.', '2021-02-01', '2022-07-31', FALSE),
 (2, 'FullStack Developer at Soluciones y Proyectos SA', 'Implemented Nomina360, a web app for human resources management.', '2022-10-01', '2023-11-30', FALSE),
 (3, 'Frontend Developer at CacaoWebStudio', 'Developed a client''s page using the new version of Shopify Theme Dawn.', '2023-11-01', '2024-02-29', FALSE),
-(4, 'Software Engineer at Dacodes', 'Created an application to manage the capacitation of operators in Yucatán, México.', '2024-05-01', '2024-12-31', TRUE);
+(4, 'Software Engineer at Dacodes', 'Created an application to manage the capacitation of operators in Yucatán, México.', '2024-05-01', '2024-12-31', FALSE),
+(5, 'Delivery Engineer at AltScore', 'Spearheaded the end-to-end delivery of customized credit evaluation solutions, acting as the primary technical liaison for clients. Analyzed client needs and existing systems to design and implement optimal integration strategies. Led client meetings in Spanish/English to define project specifications, coordinate data inputs/outputs for credit models, and manage expectations, ensuring a seamless and personalized product delivery.', '2025-06-01', '2099-12-31', TRUE);
 
 -- Insert responsibilities
 INSERT INTO responsibilities (id, experience_id, description) VALUES
@@ -207,7 +209,15 @@ INSERT INTO responsibilities (id, experience_id, description) VALUES
 (19, 4, 'Follow the business requirements and use cases.'),
 (20, 4, 'Good communication with the QA and development team.'),
 (21, 4, 'Ensure clean and understandable code and code refactorization.'),
-(22, 4, 'Side help with Backend code analysis and DB.');
+(22, 4, 'Side help with Backend code analysis and DB.'),
+
+-- Delivery Engineer at AltScore
+(23, 5, 'Spearheaded the end-to-end delivery of customized credit evaluation solutions.'),
+(24, 5, 'Acted as the primary technical liaison for clients.'),
+(25, 5, 'Analyzed client needs and existing systems to design and implement optimal integration strategies.'),
+(26, 5, 'Led client meetings in Spanish/English to define project specifications.'),
+(27, 5, 'Coordinated data inputs/outputs for credit models.'),
+(28, 5, 'Managed client expectations, ensuring seamless and personalized product delivery.');
 
 -- Insert technologies (54 technologies)
 INSERT INTO technologies (id, name, abbr) VALUES
@@ -264,7 +274,11 @@ INSERT INTO technologies (id, name, abbr) VALUES
 (51, 'Redis', 'redis'),
 (52, 'Swagger', 'swagger'),
 (53, 'Jest', 'jest'),
-(54, 'Axios', 'axios');
+(54, 'Axios', 'axios'),
+(55, 'Pydantic', 'pydantic'),
+(56, 'API Integration', 'apiintegration'),
+(57, 'Github', 'github'),
+(58, 'Pandas', 'pandas');
 
 -- Insert technology-experience relationships
 INSERT INTO technology_experiences (id, technology_id, experience_id) VALUES
@@ -279,14 +293,17 @@ INSERT INTO technology_experiences (id, technology_id, experience_id) VALUES
 (36, 53, 2), (37, 52, 2),
 -- MonkeyDevelopment (Experience 1)
 (27, 29, 1), (28, 30, 1), (29, 31, 1), (30, 32, 1), (31, 33, 1),
-(32, 34, 1), (33, 35, 1), (34, 36, 1), (35, 37, 1);
+(32, 34, 1), (33, 35, 1), (34, 36, 1), (35, 37, 1),
+-- AltScore (Experience 5)
+(39, 39, 5), (40, 55, 5), (41, 56, 5), (42, 11, 5), (43, 57, 5), (44, 58, 5);
 
 -- Insert company-experience relationships
 INSERT INTO company_experiences (id, company_id, experience_id) VALUES
 (1, 1, 1),
 (2, 2, 2),
 (3, 3, 3),
-(4, 4, 4);
+(4, 4, 4),
+(5, 5, 5);
 
 -- Insert projects
 INSERT INTO projects (id, name, description, github_uri) VALUES
