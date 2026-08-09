@@ -92,13 +92,19 @@ async def verify_token_middleware(request: Request, call_next):
     referer = request.headers.get("referer", "")
     host = request.headers.get("host", "")
 
+    print(f"DEBUG - Origin: '{origin}', Referer: '{referer}', Host: '{host}'")
+    print(f"DEBUG - Whitelisted origins: {whitelisted_origins}")
+
     # Check if origin matches any whitelisted origin
     for whitelisted_origin in whitelisted_origins:
         if origin.startswith(whitelisted_origin) or referer.startswith(whitelisted_origin):
             return await call_next(request)
         # Also check Host header (for same-origin requests where origin is not sent)
         if host.startswith(whitelisted_origin.replace("https://", "").replace("http://", "")):
+            print(f"DEBUG - Host matched: '{host}' starts with '{whitelisted_origin}'")
             return await call_next(request)
+
+    print(f"DEBUG - No match found, returning 401")
 
     # Check token authentication
     headers = request.headers
